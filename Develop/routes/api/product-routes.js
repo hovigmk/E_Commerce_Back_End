@@ -23,24 +23,33 @@ router.get("/", (req, res) => {
 
 // get one product
 router.get("/:id", (req, res) => {
-  try {
-    const productData = Product.findByPk(req.params.id, {
-      // JOIN with travellers, using the Trip through table
-      include: [
-        { model: Category, as: "Category" },
-        { model: Tag, through: ProductTag, as: "Product Tag" },
-      ],
+  Product.findOne({
+    where: {
+      id: req.params.id,
+    },
+    include: [
+      {
+        model: Category,
+      },
+      {
+        model: Tag,
+        through: ProductTag,
+      },
+    ],
+  })
+    .then((ProductData) => {
+      if (!ProductData) {
+        res
+          .status(404)
+          .json({ message: "There was no product found with this id." });
+        return;
+      }
+      res.json(ProductData);
+    })
+    .catch((err) => {
+      console.log(err);
+      res.status(500).json(err);
     });
-
-    if (!productData) {
-      res.status(404).json({ message: "No product found with this id!" });
-      return;
-    }
-
-    res.status(200).json(productData);
-  } catch (err) {
-    res.status(500).json(err);
-  }
   // find a single product by its `id`
   // be sure to include its associated Category and Tag data
 });
@@ -120,22 +129,24 @@ router.put("/:id", (req, res) => {
 });
 
 router.delete("/:id", (req, res) => {
-  try {
-    const productsData = Product.destroy({
-      where: {
-        id: req.params.id,
-      },
+  Product.destroy({
+    where: {
+      id: req.params.id,
+    },
+  })
+    .then((ProductData) => {
+      if (!ProductData) {
+        res
+          .status(404)
+          .json({ message: "There was no product found with this id." });
+        return;
+      }
+      res.json(ProductData);
+    })
+    .catch((err) => {
+      console.log(err);
+      res.status(500).json(err);
     });
-
-    if (!productsData) {
-      res.status(404).json({ message: "No product found with this id!" });
-      return;
-    }
-
-    res.status(200).json(productsData);
-  } catch (err) {
-    res.status(500).json(err);
-  }
   // delete one product by its `id` value
 });
 
